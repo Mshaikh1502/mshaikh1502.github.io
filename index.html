@@ -3,7 +3,7 @@
 <script src='https://d3js.org/d3.v5.min.js'></script>
 <style> circle {fill: lightblue; stroke: black;} </style>
 <body onload='init()'>
-<svg width=300 height=300>
+<svg width=500 height=500>
 </svg>
 <script>
 async function init() {
@@ -11,12 +11,12 @@ async function init() {
 const data = await d3.csv('mshaikh1502.github.io/cars20172.csv');
 
 var svg = d3.select("svg"),
-    margin = 50,
+    margin = 100,
     width = svg.attr("width") - 2 * margin,
     height = svg.attr("height") - 2 * margin;
 
-var x = d3.scaleLog().domain([0, 300]).range([0, width]),
-    y = d3.scaleLog().domain([0, 300]).range([height, 0]);
+var x = d3.scaleLinear().domain([0, 300]).range([0, width]),
+    y = d3.scaleLinear().domain([0, 300]).range([height, 0]);
 
 var g = svg.append("g")
     .attr("transform", "translate(" + margin + "," + margin + ")");
