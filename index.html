@@ -1,63 +1,61 @@
 <!DOCTYPE html>
 <html>
 <script src='https://d3js.org/d3.v5.min.js'></script>
-<style> circle {fill: lightblue; stroke: black;} </style>
+<style> 
+    circle {fill: lightblue; stroke: black;} 
+</style>
 <body onload='init()'>
-<svg width=500 height=500>
-</svg>
+<svg width=500 height=500></svg>
 <script>
 async function init() {
 
-const data = await d3.csv('mshaikh1502.github.io/cars20172.csv');
+    const data = await d3.csv('https://mshaikh1502.github.io/cars20172.csv', d3.autoType);
 
-var svg = d3.select("svg"),
-    margin = 100,
-    width = svg.attr("width") - 2 * margin,
-    height = svg.attr("height") - 2 * margin;
+    var svg = d3.select("svg"),
+        margin = 50,
+        width = svg.attr("width") - 2 * margin,
+        height = svg.attr("height") - 2 * margin;
 
-var x = d3.scaleLinear().domain([0, 300]).range([0, width]),
-    y = d3.scaleLinear().domain([0, 300]).range([height, 0]);
+    var x = d3.scaleLinear().domain([0, d3.max(data, d => d.AverageCityMPG)]).range([0, width]),
+        y = d3.scaleLinear().domain([0, d3.max(data, d => d.AverageHighwayMPG)]).range([height, 0]);
 
-var g = svg.append("g")
-    .attr("transform", "translate(" + margin + "," + margin + ")");
+    var g = svg.append("g")
+        .attr("transform", "translate(" + margin + "," + margin + ")");
 
-g.append("g")
-    .attr("transform", "translate(0," + height + ")")
-    .call(d3.axisBottom(x).tickValues([10, 20, 50, 100]).tickFormat(d3.format("~s")));
+    g.append("g")
+        .attr("transform", "translate(0," + height + ")")
+        .call(d3.axisBottom(x));
 
-g.append("g")
-    .call(d3.axisLeft(y).tickValues([10, 20, 50, 100]).tickFormat(d3.format("~s")));
+    g.append("g")
+        .call(d3.axisLeft(y));
 
-g.selectAll("dot")
-    .data(data)
-    .enter()
-    .append("circle")
-    .attr("class", "dot")
-    .attr("cx", function (d) { return x(d['AverageCityMPG']); })
-    .attr("cy", function (d) { return y(d['AverageHighwayMPG']); })
-    .attr("r", 2);
+    g.selectAll("circle")
+        .data(data)
+        .enter()
+        .append("circle")
+        .attr("cx", function (d) { return x(d.AverageCityMPG); })
+        .attr("cy", function (d) { return y(d.AverageHighwayMPG); })
+        .attr("r", 4);
 
-g.append("text")
-    .attr("transform", "translate(" + (width / 2) + " ," + (height + margin - 10) + ")")
-    .style("text-anchor", "middle")
-    .text("Average City MPG");
+    g.append("text")
+        .attr("transform", "translate(" + (width / 2) + " ," + (height + margin / 2) + ")")
+        .style("text-anchor", "middle")
+        .text("Average City MPG");
 
-g.append("text")
-    .attr("transform", "rotate(-90)")
-    .attr("y", 0 - margin)
-    .attr("x", 0 - (height / 2))
-    .attr("dy", "1em")
-    .style("text-anchor", "middle")
-    .text("Average Highway MPG");
+    g.append("text")
+        .attr("transform", "rotate(-90)")
+        .attr("y", 0 - margin)
+        .attr("x", 0 - (height / 2))
+        .attr("dy", "1em")
+        .style("text-anchor", "middle")
+        .text("Average Highway MPG");
 
-svg.append("text")
-    .attr("x", (width / 2))
-    .attr("y", margin / 2)
-    .attr("text-anchor", "middle")
-    .style("font-size", "16px")
-    .text("Scatter Plot of Average MPG");
-
-
+    svg.append("text")
+        .attr("x", (width / 2) + margin)
+        .attr("y", margin / 2)
+        .attr("text-anchor", "middle")
+        .style("font-size", "16px")
+        .text("Scatter Plot of Average MPG");
 }
 </script>
 </body>
