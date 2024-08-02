@@ -1,44 +1,35 @@
 <!DOCTYPE html>
 <html>
 <script src='https://d3js.org/d3.v5.min.js'></script>
-<style>
-    circle {
-        stroke: black;
+<script src="d3-annotation.min.js"></script>
+<style> 
+    circle {stroke: black;} 
+    rect {stroke: black;} 
+    path {stroke: black;} 
+    .container {
+        display: flex;
     }
-
-    rect {
-        stroke: black;
-    }
-
-    path {
-        stroke: black;
-    }
-
     .filters {
         display: flex;
         flex-direction: column;
-        margin-top: 20px;
+        margin-left: 20px;
     }
-
     .filter-section {
         display: flex;
         flex-direction: column;
         margin-bottom: 20px;
     }
-
     .legend-circle {
         width: 10px;
         height: 10px;
         border-radius: 50%;
         display: inline-block;
     }
-
     .legend-rect {
         width: 10px;
         height: 10px;
         display: inline-block;
     }
-
     .legend-triangle {
         width: 0;
         height: 0;
@@ -47,23 +38,17 @@
         border-bottom: 10px solid black;
         display: inline-block;
     }
-
     .slider-container {
         margin-top: 20px;
     }
-
     .slider-label {
         margin-bottom: 10px;
     }
 </style>
-
 <body onload='init()'>
+<div class="container">
     <svg width=800 height=800></svg>
     <div class="filters">
-        <div id="makeFilter" class="filter-section">
-            <h3>Filter by Make:</h3>
-            <label><input type="checkbox" id="selectAllMakes" checked>Select All</label><br>
-        </div>
         <div id="fuelFilter" class="filter-section">
             <h3>Filter by Fuel:</h3>
             <label><input type="checkbox" id="selectAllFuels" checked>Select All</label><br>
@@ -76,177 +61,220 @@
             <div class="slider-label">Y-axis (Average Highway MPG): <span id="ySliderValue"></span></div>
             <input type="range" id="ySlider" min="0" max="150" value="150" step="1">
         </div>
+        <div id="makeFilter" class="filter-section">
+            <h3>Filter by Make:</h3>
+            <label><input type="checkbox" id="selectAllMakes" checked>Select All</label><br>
+        </div>
     </div>
-    <script>
-        async function init() {
-            const data = await d3.csv('https://mshaikh1502.github.io/cars20172.csv', d3.autoType);
+</div>
+<script>
+async function init() {
+    const data = await d3.csv('https://mshaikh1502.github.io/cars20172.csv', d3.autoType);
 
-            var svg = d3.select("svg"),
-                margin = 50,
-                width = svg.attr("width") - 2 * margin,
-                height = svg.attr("height") - 2 * margin;
+    var svg = d3.select("svg"),
+        margin = 75,
+        width = svg.attr("width") - 2 * margin,
+        height = svg.attr("height") - 2 * margin;
 
-            var x = d3.scaleLinear().range([0, width]),
-                y = d3.scaleLinear().range([height, 0]);
+    var x = d3.scaleLinear().range([0, width]),
+        y = d3.scaleLinear().range([height, 0]);
 
-            var g = svg.append("g")
-                .attr("transform", "translate(" + margin + "," + margin + ")");
+    var g = svg.append("g")
+        .attr("transform", "translate(" + margin + "," + margin + ")");
 
-            var xAxis = g.append("g")
-                .attr("transform", "translate(0," + height + ")");
+    var xAxis = g.append("g")
+        .attr("transform", "translate(0," + height + ")");
 
-            var yAxis = g.append("g");
+    var yAxis = g.append("g");
 
-            var xSlider = d3.select("#xSlider");
-            var ySlider = d3.select("#ySlider");
-            var xSliderValue = d3.select("#xSliderValue");
-            var ySliderValue = d3.select("#ySliderValue");
+    var xSlider = d3.select("#xSlider");
+    var ySlider = d3.select("#ySlider");
+    var xSliderValue = d3.select("#xSliderValue");
+    var ySliderValue = d3.select("#ySliderValue");
 
-            xSliderValue.text(xSlider.property("value"));
-            ySliderValue.text(ySlider.property("value"));
+    xSliderValue.text(xSlider.property("value"));
+    ySliderValue.text(ySlider.property("value"));
 
-            xSlider.on("input", function() {
-                xSliderValue.text(this.value);
-                updateFilter();
-            });
+    xSlider.on("input", function() {
+        xSliderValue.text(this.value);
+        updateFilter();
+    });
 
-            ySlider.on("input", function() {
-                ySliderValue.text(this.value);
-                updateFilter();
-            });
+    ySlider.on("input", function() {
+        ySliderValue.text(this.value);
+        updateFilter();
+    });
 
-            function update(filteredData) {
-                var xMax = Math.min(+xSlider.property("value"), d3.max(filteredData, d => d.AverageCityMPG));
-                var yMax = Math.min(+ySlider.property("value"), d3.max(filteredData, d => d.AverageHighwayMPG));
+    function update(filteredData) {
+        var xMax = Math.min(+xSlider.property("value"), d3.max(filteredData, d => d.AverageCityMPG));
+        var yMax = Math.min(+ySlider.property("value"), d3.max(filteredData, d => d.AverageHighwayMPG));
 
-                x.domain([0, xMax]);
-                y.domain([0, yMax]);
+        x.domain([0, xMax]);
+        y.domain([0, yMax]);
 
-                xAxis.transition().duration(750).call(d3.axisBottom(x));
-                yAxis.transition().duration(750).call(d3.axisLeft(y));
+        xAxis.transition().duration(750).call(d3.axisBottom(x));
+        yAxis.transition().duration(750).call(d3.axisLeft(y));
 
-                var circles = g.selectAll("circle").data(filteredData.filter(d => d.Fuel === "Gasoline"));
-                var rects = g.selectAll("rect").data(filteredData.filter(d => d.Fuel === "Diesel"));
-                var triangles = g.selectAll("path").data(filteredData.filter(d => d.Fuel === "Electricity"));
+        var circles = g.selectAll("circle").data(filteredData.filter(d => d.Fuel === "Gasoline"));
+        var rects = g.selectAll("rect").data(filteredData.filter(d => d.Fuel === "Diesel"));
+        var triangles = g.selectAll("path").data(filteredData.filter(d => d.Fuel === "Electricity"));
 
-                circles.exit().transition().duration(750).attr("r", 0).remove();
-                rects.exit().transition().duration(750).attr("width", 0).attr("height", 0).remove();
-                triangles.exit().transition().duration(750).attr("d", d3.symbol().type(d3.symbolTriangle).size(0)).remove();
+        circles.exit().transition().duration(750).attr("r", 0).remove();
+        rects.exit().transition().duration(750).attr("width", 0).attr("height", 0).remove();
+        triangles.exit().transition().duration(750).attr("d", d3.symbol().type(d3.symbolTriangle).size(0)).remove();
 
-                circles.transition().duration(750)
-                    .attr("cx", d => x(d.AverageCityMPG))
-                    .attr("cy", d => y(d.AverageHighwayMPG))
-                    .attr("fill", d => colorScale(makes.indexOf(d.Make)));
+        circles.transition().duration(750)
+            .attr("cx", d => x(d.AverageCityMPG))
+            .attr("cy", d => y(d.AverageHighwayMPG))
+            .attr("fill", d => colorScale(makes.indexOf(d.Make)));
 
-                rects.transition().duration(750)
-                    .attr("x", d => x(d.AverageCityMPG) - 4)
-                    .attr("y", d => y(d.AverageHighwayMPG) - 4)
-                    .attr("fill", d => colorScale(makes.indexOf(d.Make)));
+        rects.transition().duration(750)
+            .attr("x", d => x(d.AverageCityMPG) - 4)
+            .attr("y", d => y(d.AverageHighwayMPG) - 4)
+            .attr("fill", d => colorScale(makes.indexOf(d.Make)));
 
-                triangles.transition().duration(750)
-                    .attr("d", d3.symbol().type(d3.symbolTriangle).size(64))
-                    .attr("transform", d => `translate(${x(d.AverageCityMPG)},${y(d.AverageHighwayMPG)})`)
-                    .attr("fill", d => colorScale(makes.indexOf(d.Make)));
+        triangles.transition().duration(750)
+            .attr("d", d3.symbol().type(d3.symbolTriangle).size(64))
+            .attr("transform", d => `translate(${x(d.AverageCityMPG)},${y(d.AverageHighwayMPG)})`)
+            .attr("fill", d => colorScale(makes.indexOf(d.Make)));
 
-                circles.enter().append("circle")
-                    .attr("cx", d => x(d.AverageCityMPG))
-                    .attr("cy", d => y(d.AverageHighwayMPG))
-                    .attr("r", 0)
-                    .attr("fill", d => colorScale(makes.indexOf(d.Make)))
-                    .transition().duration(750)
-                    .attr("r", 4);
+        circles.enter().append("circle")
+            .attr("cx", d => x(d.AverageCityMPG))
+            .attr("cy", d => y(d.AverageHighwayMPG))
+            .attr("r", 0)
+            .attr("fill", d => colorScale(makes.indexOf(d.Make)))
+            .transition().duration(750)
+            .attr("r", 4);
 
-                rects.enter().append("rect")
-                    .attr("x", d => x(d.AverageCityMPG) - 4)
-                    .attr("y", d => y(d.AverageHighwayMPG) - 4)
-                    .attr("width", 0)
-                    .attr("height", 0)
-                    .attr("fill", d => colorScale(makes.indexOf(d.Make)))
-                    .transition().duration(750)
-                    .attr("width", 8)
-                    .attr("height", 8);
+        rects.enter().append("rect")
+            .attr("x", d => x(d.AverageCityMPG) - 4)
+            .attr("y", d => y(d.AverageHighwayMPG) - 4)
+            .attr("width", 0)
+            .attr("height", 0)
+            .attr("fill", d => colorScale(makes.indexOf(d.Make)))
+            .transition().duration(750)
+            .attr("width", 8)
+            .attr("height", 8);
 
-                triangles.enter().append("path")
-                    .attr("d", d3.symbol().type(d3.symbolTriangle).size(0))
-                    .attr("transform", d => `translate(${x(d.AverageCityMPG)},${y(d.AverageHighwayMPG)})`)
-                    .attr("fill", d => colorScale(makes.indexOf(d.Make)))
-                    .transition().duration(750)
-                    .attr("d", d3.symbol().type(d3.symbolTriangle).size(64));
-            }
+        triangles.enter().append("path")
+            .attr("d", d3.symbol().type(d3.symbolTriangle).size(0))
+            .attr("transform", d => `translate(${x(d.AverageCityMPG)},${y(d.AverageHighwayMPG)})`)
+            .attr("fill", d => colorScale(makes.indexOf(d.Make)))
+            .transition().duration(750)
+            .attr("d", d3.symbol().type(d3.symbolTriangle).size(64));
 
-            function updateFilter() {
-                var selectedMakes = d3.selectAll(".makeCheckbox:checked").nodes().map(n => n.value);
-                var selectedFuels = d3.selectAll(".fuelCheckbox:checked").nodes().map(n => n.value);
-                var filteredData = data.filter(d => selectedMakes.includes(d.Make) && selectedFuels.includes(d.Fuel));
-                update(filteredData);
-            }
+        const annotationGroup = svg.selectAll(".annotation-group")
+            .data(filteredData)
+            .enter()
+            .append("g")
+            .attr("class", "annotation-group")
+            .style("opacity", 0.8);
 
-            var makes = Array.from(new Set(data.map(d => d.Make)));
-            var colorScale = d3.scaleSequential(d3.interpolateSpectral).domain([0, makes.length - 1]);
-            var makeFilter = d3.select("#makeFilter");
+        annotationGroup.each(function(d) {
+            const annotation = d3.annotation()
+                .type(d3.annotationLabel)
+                .annotations([{
+                    note: {
+                        label: `${d.Make} ${d.Model}`,
+                        title: `${d.AverageCityMPG} City MPG, ${d.AverageHighwayMPG} Highway MPG`
+                    },
+                    connector: { end: "arrow" },
+                    x: x(d.AverageCityMPG+17),
+                    y: y(d.AverageHighwayMPG-14),
+                    dx: 20,
+                    dy: -20
+                }])
+                .accessors({
+                    x: d => x(d.AverageCityMPG),
+                    y: d => y(d.AverageHighwayMPG)
+                })
+                .accessorsInverse({
+                    x: d => x.invert(d.x),
+                    y: d => y.invert(d.y)
+                });
 
-            makes.forEach((make, i) => {
-                makeFilter.append("label")
-                    .html(`<input type="checkbox" class="makeCheckbox" value="${make}" checked><span class="legend-circle" style="background-color:${colorScale(i)}"></span> ${make}`)
-                    .append("br");
-            });
+            d3.select(this).call(annotation);
+        });
 
-            var fuels = ["Gasoline", "Diesel", "Electricity"];
-            var fuelFilter = d3.select("#fuelFilter");
+        // Style the annotations
+        svg.selectAll(".annotation-note-bg")
+            .attr("fill", "white")
+            .attr("stroke", "black")
+            .attr("stroke-width", 1);
+    }
 
-            fuels.forEach(fuel => {
-                let shape;
-                if (fuel === "Gasoline") {
-                    shape = '<span class="legend-circle" style="background-color:black"></span>';
-                } else if (fuel === "Diesel") {
-                    shape = '<span class="legend-rect" style="background-color:black"></span>';
-                } else if (fuel === "Electricity") {
-                    shape = '<span class="legend-triangle" style="border-bottom-color:black"></span>';
-                }
-                fuelFilter.append("label")
-                    .html(`<input type="checkbox" class="fuelCheckbox" value="${fuel}" checked>${shape} ${fuel}`)
-                    .append("br");
-            });
+    function updateFilter() {
+        var selectedMakes = d3.selectAll(".makeCheckbox:checked").nodes().map(n => n.value);
+        var selectedFuels = d3.selectAll(".fuelCheckbox:checked").nodes().map(n => n.value);
+        var filteredData = data.filter(d => selectedMakes.includes(d.Make) && selectedFuels.includes(d.Fuel));
+        update(filteredData);
+    }
 
-            d3.select("#selectAllMakes").on("change", function() {
-                var checked = this.checked;
-                d3.selectAll(".makeCheckbox").property("checked", checked);
-                updateFilter();
-            });
+    var makes = Array.from(new Set(data.map(d => d.Make)));
+    var colorScale = d3.scaleSequential(d3.interpolateSpectral).domain([0, makes.length - 1]);
+    var makeFilter = d3.select("#makeFilter");
 
-            d3.select("#selectAllFuels").on("change", function() {
-                var checked = this.checked;
-                d3.selectAll(".fuelCheckbox").property("checked", checked);
-                updateFilter();
-            });
+    makes.forEach((make, i) => {
+        makeFilter.append("label")
+            .html(`<input type="checkbox" class="makeCheckbox" value="${make}" checked><span class="legend-circle" style="background-color:${colorScale(i)}"></span> ${make}`)
+            .append("br");
+    });
 
-            d3.selectAll(".makeCheckbox, .fuelCheckbox").on("change", function() {
-                updateFilter();
-            });
+    var fuels = ["Gasoline", "Diesel", "Electricity"];
+    var fuelFilter = d3.select("#fuelFilter");
 
-            update(data);
-
-            g.append("text")
-                .attr("transform", "translate(" + (width / 2) + " ," + (height + margin / 2) + ")")
-                .style("text-anchor", "middle")
-                .text("Average City MPG");
-
-            g.append("text")
-                .attr("transform", "rotate(-90)")
-                .attr("y", 0 - margin)
-                .attr("x", 0 - (height / 2))
-                .attr("dy", "1em")
-                .style("text-anchor", "middle")
-                .text("Average Highway MPG");
-
-            svg.append("text")
-                .attr("x", (width / 2) + margin)
-                .attr("y", margin / 2)
-                .attr("text-anchor", "middle")
-                .style("font-size", "16px")
-                .text("Scatter Plot of Average MPG");
+    fuels.forEach(fuel => {
+        let shape;
+        if (fuel === "Gasoline") {
+            shape = '<span class="legend-circle" style="background-color:black"></span>';
+        } else if (fuel === "Diesel") {
+            shape = '<span class="legend-rect" style="background-color:black"></span>';
+        } else if (fuel === "Electricity") {
+            shape = '<span class="legend-triangle" style="border-bottom-color:black"></span>';
         }
-    </script>
-</body>
+        fuelFilter.append("label")
+            .html(`<input type="checkbox" class="fuelCheckbox" value="${fuel}" checked>${shape} ${fuel}`)
+            .append("br");
+    });
 
+    d3.select("#selectAllMakes").on("change", function() {
+        var checked = this.checked;
+        d3.selectAll(".makeCheckbox").property("checked", checked);
+        updateFilter();
+    });
+
+    d3.select("#selectAllFuels").on("change", function() {
+        var checked = this.checked;
+        d3.selectAll(".fuelCheckbox").property("checked", checked);
+        updateFilter();
+    });
+
+    d3.selectAll(".makeCheckbox, .fuelCheckbox").on("change", function() {
+        updateFilter();
+    });
+
+    update(data);
+
+    g.append("text")
+        .attr("transform", "translate(" + (width / 2) + " ," + (height + margin / 2) + ")")
+        .style("text-anchor", "middle")
+        .text("Average City MPG");
+
+    g.append("text")
+        .attr("transform", "rotate(-90)")
+        .attr("y", 0 - margin)
+        .attr("x", 0 - (height / 2))
+        .attr("dy", "1em")
+        .style("text-anchor", "middle")
+        .text("Average Highway MPG");
+
+    svg.append("text")
+        .attr("x", (width / 2) + margin)
+        .attr("y", margin / 2)
+        .attr("text-anchor", "middle")
+        .style("font-size", "16px")
+        .text("Scatter Plot of Average MPG");
+}
+</script>
+</body>
 </html>
